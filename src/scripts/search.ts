@@ -4,18 +4,19 @@ import { renderPages } from "../components/page";
 import { errorHandler } from "../libs/error-handler";
 import { AxiosError } from "axios";
 import { ErrorResponseData, SneakerParams } from "../types/type";
+import { debounce } from 'lodash';
 
 const mainSearch = document.getElementById("mainSearch") as HTMLElement;
 let searchQuery: string | null;
 
 //==================== Search input =====================
 const searchInput = document.getElementById("search") as HTMLInputElement;
-searchInput.addEventListener("input", (event: Event) => {
+searchInput.addEventListener("input", debounce((event: Event) => {
   const query = (event.target as HTMLInputElement).value;
   if (query.length > 1) {
     window.location.href = `/search?search=${query}`;
   }
-});
+}, 3000));
 
 //================ Create query ===================
 export function Query(query?: string | null): void {
@@ -38,6 +39,7 @@ async function setSneakers(query: string | null, page: number = 1): Promise<void
     if(searchQuery){
         chooseSneaker(searchQuery);
     }    
+    setupPagination(response.totalPages, page);
   } catch (error) {
     return errorHandler(error as AxiosError<ErrorResponseData>);
   }
@@ -108,6 +110,27 @@ function Sneakers(listSneaker: string, pagination: string): string {
     </div>
   `;
 }
+
+function setupPagination(totalPages: number, currentPage: number): void {
+  const pagesContainer = document.getElementById("pages");
+  if (!pagesContainer) return;
+
+  pagesContainer.innerHTML = "";
+  for (let i = 1; i <= totalPages; i++) {
+    const pageButton = document.createElement("button");
+    pageButton.textContent = i.toString();
+    pageButton.classList.add("pagination-button");
+    pageButton.classList.add("px-2", "bg-gray-200" , "rounded-3xl" , "font-medium");
+    if (i === currentPage) {
+      pageButton.classList.add("active");
+      pageButton.classList.add("!bg-gray-600" , "text-white");
+    }
+
+    pageButton.addEventListener("click", () => setSneakers(searchQuery, i));
+    pagesContainer.appendChild(pageButton);
+  }
+}
+
 
 // =================== call function ===================
 if (window.location.pathname === "/search") {
