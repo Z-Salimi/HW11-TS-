@@ -22,6 +22,7 @@ export interface SneakerParams {
   page?: number;
   limit?: number;
   brands?: string;
+  search?: string | null;
 }
 export interface Sneaker {
   pid: string;
